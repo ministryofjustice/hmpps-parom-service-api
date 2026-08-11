@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.templatepackagename.integration
+package uk.gov.justice.digital.hmpps.paromserviceapi.integration
 
 import org.junit.jupiter.api.Test
 
