@@ -12,10 +12,8 @@ import uk.gov.justice.digital.hmpps.paromserviceapi.integration.wiremock.HmppsAu
 import uk.gov.justice.digital.hmpps.paromserviceapi.integration.wiremock.HmppsAuthApiExtension.Companion.hmppsAuth
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
-@ExtendWith(HmppsAuthApiExtension::class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@AutoConfigureWebTestClient
 abstract class IntegrationTestBase {
 
   @Autowired
