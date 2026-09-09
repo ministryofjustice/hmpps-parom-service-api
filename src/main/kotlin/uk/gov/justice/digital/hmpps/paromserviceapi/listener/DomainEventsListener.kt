@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.paromserviceapi.model.DomainEventsMessage
 import uk.gov.justice.digital.hmpps.paromserviceapi.service.NDeliusIntegrationService
 import uk.gov.justice.digital.hmpps.paromserviceapi.service.ParomService
-import java.time.ZonedDateTime
 import kotlin.text.get
 
 @Service
@@ -34,7 +33,6 @@ class DomainEventsListener(
       // TODO
     }
   }
-
 }
 
 data class SQSMessage(

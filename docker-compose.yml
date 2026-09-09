@@ -15,7 +15,7 @@ services:
       - hmpps
     container_name: hmpps-auth
     ports:
-      - "8090:8080"
+      - "9090:8080"
     healthcheck:
       test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8080"]
     environment:

@@ -6,5 +6,4 @@ import uk.gov.justice.digital.hmpps.paromserviceapi.entity.ParomEntity
 import java.util.UUID
 
 @Repository
-interface ParomRepository : JpaRepository<ParomEntity, UUID> {
-}
+interface ParomRepository : JpaRepository<ParomEntity, UUID>
