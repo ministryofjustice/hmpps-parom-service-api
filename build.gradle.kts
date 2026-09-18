@@ -18,7 +18,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
   implementation("org.flywaydb:flyway-core")
-  implementation("org.apache.pdfbox:pdfbox:2.0.37")
+  implementation("org.apache.pdfbox:pdfbox:3.0.8")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
 
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
