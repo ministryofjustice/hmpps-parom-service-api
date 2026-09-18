@@ -1,0 +1,15 @@
+POST http://localhost:9090/auth/oauth/token?grant_type=client_credentials
+Authorization: Basic hmpps-typescript-template-system clientsecret
+
+> {%
+    client.global.set("token", response.body.access_token);
+%}
+
+### Insert a new parom record
+POST http://localhost:8080/parom
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "crn": "X012345"
+}

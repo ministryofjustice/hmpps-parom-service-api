@@ -3,32 +3,23 @@
 
 generic-service:
   ingress:
-    host: parom-service-api.hmpps.service.justice.gov.uk
+    host: parom-service-api-prod.hmpps.service.justice.gov.uk
     # modsecurity_enabled: true
 
   env:
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
+    NDELIUS-INTEGRATION-API_URL: "https://parom-and-delius.hmpps.service.justice.gov.uk"
+    FRONTEND_URL: "https://parom-service-ui-prod.hmpps.service.justice.gov.uk"
  
   allowlist:
-    # Configure groups as appropriate to give the minimum ingress access required:
-    #   global_protect: devices using the global_protect proxy
-    #   moj_cloud_platform: services on Cloud Platform
-    # Other IP allowlist groups are here: 
-    # https://github.com/ministryofjustice/hmpps-ip-allowlists/blob/main/ip-allowlist-groups.yaml
 
     groups:
-      - global_protect
+      - digital_staff_and_mojo
+      - unilink_staff
       - moj_cloud_platform
-
-  # NOTE: Removing ALL allowlist groups will make the application accessible from the internet. 
-  #       If you are intending to do this, please ensure you uncomment the 'modsecurity_enabled=true' 
-  #       entry in the ingress above. This will enable WAF protection of the endpoint. You will need 
-  #       to configure modsecurity rules to suit your needs. Further information can be found here:
-  #       https://user-guide.cloud-platform.service.justice.gov.uk/documentation/networking/modsecurity.html#modsecurity-web-application-firewall
-
-
+      - delius-prod
 
 # CloudPlatform AlertManager receiver to route prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
-  alertSeverity: hmpps_alerts_prod
+  alertSeverity: hmpps-parom-service-notifications
