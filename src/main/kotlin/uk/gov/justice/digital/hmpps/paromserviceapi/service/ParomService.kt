@@ -1,30 +1,322 @@
 package uk.gov.justice.digital.hmpps.paromserviceapi.service
 
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.paromserviceapi.entity.ParomEntity
+import uk.gov.justice.digital.hmpps.paromserviceapi.entity.ProgrammeInterventionEntity
+import uk.gov.justice.digital.hmpps.paromserviceapi.entity.SignatoryEntity
+import uk.gov.justice.digital.hmpps.paromserviceapi.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.CreateResponse
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.InitialiseParom
 import uk.gov.justice.digital.hmpps.paromserviceapi.model.Parom
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.ProgrammeIntervention
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.Signatory
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.SignatoryLevel
 import uk.gov.justice.digital.hmpps.paromserviceapi.repository.ParomRepository
+import java.util.UUID
 
 @Service
 class ParomService(
   private val paromRepository: ParomRepository,
+  @Value("\${frontend.url}") val frontendUrl: String,
 ) {
-  private fun Parom.toEntity(existingEntity: ParomEntity? = null): ParomEntity = existingEntity?.copy(
-    crn = crn,
-    titleAndFullName = titleAndFullName,
-    dateOfForm = dateOfForm,
-    sheetSentBy = sheetSentBy,
-  ) ?: ParomEntity(
-    crn = crn,
-    titleAndFullName = titleAndFullName,
-    dateOfForm = dateOfForm,
-    sheetSentBy = sheetSentBy,
+
+  fun getParomById(id: UUID): Parom = findParomById(id).toModel()
+
+  @Transactional
+  fun initialiseParom(initialiseParom: InitialiseParom) = paromRepository.save(
+    ParomEntity(crn = initialiseParom.crn),
+  ).id.let {
+    CreateResponse(it, "$frontendUrl/basic-details/$it")
+  }
+
+  @Transactional
+  fun updateParom(id: UUID, parom: Parom): Parom {
+    val paromEntity = findParomById(id)
+    return paromRepository.save(parom.toEntity(paromEntity)).toModel()
+  }
+
+  @Transactional
+  fun deleteParom(id: UUID): String {
+    if (!paromRepository.existsById(id)) {
+      throw NotFoundException("ParomEntity", "id", id)
+    }
+    val crn = findParomById(id).crn
+    paromRepository.deleteById(id)
+    return crn
+  }
+
+  private fun findParomById(id: UUID): ParomEntity = paromRepository.findByIdOrNull(id) ?: throw NotFoundException("ParomEntity", "id", id)
+
+  private fun Parom.toEntity(existingEntity: ParomEntity? = null): ParomEntity {
+    val entity = existingEntity?.copy(
+      crn = crn,
+      terminated = terminated,
+      terminatedUnterminatedDate = terminatedUnterminatedDate,
+      basicDetailsSaved = basicDetailsSaved,
+      mentalHealthSaved = mentalHealthSaved,
+      prisonerContactSaved = prisonerContactSaved,
+      attitudesSaved = attitudesSaved,
+      victimsSaved = victimsSaved,
+      opdAndProgrammesSaved = opdAndProgrammesSaved,
+      mappaAndPlansSaved = mappaAndPlansSaved,
+      professionalOpinionsSaved = professionalOpinionsSaved,
+      ippdppSaved = ippdppSaved,
+      memberCaseAssessmentSaved = memberCaseAssessmentSaved,
+      conclusionSaved = conclusionSaved,
+      signOffSaved = signOffSaved,
+      titleAndFullName = titleAndFullName,
+      reportDate = reportDate,
+      nomisNumber = nomisNumber,
+      prisonNumber = prisonNumber,
+      paroleEligibilityDate = paroleEligibilityDate,
+      communityOffenderManager = communityOffenderManager,
+      dateAppointed = dateAppointed,
+      completingTheForm = completingTheForm,
+      position = position,
+      mentalHealthConcerns = mentalHealthConcerns,
+      mentalCapacityConcerns = mentalCapacityConcerns,
+      opdPathway = opdPathway,
+      knowledgeOfPrisoner = knowledgeOfPrisoner,
+      prisonersFamily = prisonersFamily,
+      prisonerAgencies = prisonerAgencies,
+      attitudeToIndexOffences = attitudeToIndexOffences,
+      attitudeToPreviousOffences = attitudeToPreviousOffences,
+      victimContactScheme = victimContactScheme,
+      liaisonOfficerContactDate = liaisonOfficerContactDate,
+      victimPersonalStatement = victimPersonalStatement,
+      custodialBehaviour = custodialBehaviour,
+      programmesInterventions = programmesInterventions,
+      impactOfInterventions = impactOfInterventions,
+      mappaCategory = mappaCategory,
+      mappaLevel = mappaLevel,
+      resettlementPlan = resettlementPlan,
+      supervisionPlan = supervisionPlan,
+      proposedLicenseConditions = proposedLicenseConditions,
+      riskOfAbsconding = riskOfAbsconding,
+      ippTerminationCase = ippTerminationCase,
+      ippRecommendation = ippRecommendation,
+      reportAuthorsProfessionalOpinion = reportAuthorsProfessionalOpinion,
+      professionalOpinion = professionalOpinion,
+      confirmViewedReport = confirmViewedReport,
+      testConsiderationOpenConditions = testConsiderationOpenConditions,
+      licenceTerminationCase = licenceTerminationCase,
+      assessmentOralConsiderations = assessmentOralConsiderations,
+      previousConvictions = previousConvictions,
+      cpsDocuments = cpsDocuments,
+      sentencersComments = sentencersComments,
+      paroleCaseRecords = paroleCaseRecords,
+      paroleDossier = paroleDossier,
+      paroleCustodyReport = paroleCustodyReport,
+      other = other,
+      reportAssessmentsDirections = reportAssessmentsDirections,
+      limitationsToSourcesProvided = limitationsToSourcesProvided,
+      limitationsDetails = limitationsDetails,
+      qualityOfInformation = qualityOfInformation,
+      oasysManagementPlan = oasysManagementPlan,
+      paroleBoardReport = paroleBoardReport,
+      psRegion = psRegion,
+      pdu = pdu,
+      emailAddress = emailAddress,
+      contactTelephoneNumber = contactTelephoneNumber,
+    ) ?: ParomEntity(
+      crn = crn,
+      terminated = terminated,
+      terminatedUnterminatedDate = terminatedUnterminatedDate,
+      basicDetailsSaved = basicDetailsSaved,
+      mentalHealthSaved = mentalHealthSaved,
+      prisonerContactSaved = prisonerContactSaved,
+      attitudesSaved = attitudesSaved,
+      victimsSaved = victimsSaved,
+      opdAndProgrammesSaved = opdAndProgrammesSaved,
+      mappaAndPlansSaved = mappaAndPlansSaved,
+      professionalOpinionsSaved = professionalOpinionsSaved,
+      ippdppSaved = ippdppSaved,
+      memberCaseAssessmentSaved = memberCaseAssessmentSaved,
+      conclusionSaved = conclusionSaved,
+      signOffSaved = signOffSaved,
+      titleAndFullName = titleAndFullName,
+      reportDate = reportDate,
+      nomisNumber = nomisNumber,
+      prisonNumber = prisonNumber,
+      paroleEligibilityDate = paroleEligibilityDate,
+      communityOffenderManager = communityOffenderManager,
+      dateAppointed = dateAppointed,
+      completingTheForm = completingTheForm,
+      position = position,
+      mentalHealthConcerns = mentalHealthConcerns,
+      mentalCapacityConcerns = mentalCapacityConcerns,
+      opdPathway = opdPathway,
+      knowledgeOfPrisoner = knowledgeOfPrisoner,
+      prisonersFamily = prisonersFamily,
+      prisonerAgencies = prisonerAgencies,
+      attitudeToIndexOffences = attitudeToIndexOffences,
+      attitudeToPreviousOffences = attitudeToPreviousOffences,
+      victimContactScheme = victimContactScheme,
+      liaisonOfficerContactDate = liaisonOfficerContactDate,
+      victimPersonalStatement = victimPersonalStatement,
+      custodialBehaviour = custodialBehaviour,
+      programmesInterventions = programmesInterventions,
+      impactOfInterventions = impactOfInterventions,
+      mappaCategory = mappaCategory,
+      mappaLevel = mappaLevel,
+      resettlementPlan = resettlementPlan,
+      supervisionPlan = supervisionPlan,
+      proposedLicenseConditions = proposedLicenseConditions,
+      riskOfAbsconding = riskOfAbsconding,
+      ippTerminationCase = ippTerminationCase,
+      ippRecommendation = ippRecommendation,
+      reportAuthorsProfessionalOpinion = reportAuthorsProfessionalOpinion,
+      professionalOpinion = professionalOpinion,
+      confirmViewedReport = confirmViewedReport,
+      testConsiderationOpenConditions = testConsiderationOpenConditions,
+      licenceTerminationCase = licenceTerminationCase,
+      assessmentOralConsiderations = assessmentOralConsiderations,
+      previousConvictions = previousConvictions,
+      cpsDocuments = cpsDocuments,
+      sentencersComments = sentencersComments,
+      paroleCaseRecords = paroleCaseRecords,
+      paroleDossier = paroleDossier,
+      paroleCustodyReport = paroleCustodyReport,
+      other = other,
+      reportAssessmentsDirections = reportAssessmentsDirections,
+      limitationsToSourcesProvided = limitationsToSourcesProvided,
+      limitationsDetails = limitationsDetails,
+      qualityOfInformation = qualityOfInformation,
+      oasysManagementPlan = oasysManagementPlan,
+      paroleBoardReport = paroleBoardReport,
+      psRegion = psRegion,
+      pdu = pdu,
+      emailAddress = emailAddress,
+      contactTelephoneNumber = contactTelephoneNumber,
+    )
+
+    entity.programmeInterventionList.clear()
+    entity.programmeInterventionList.addAll(
+      programmeInterventionList.map { it.toEntity(entity) },
+    )
+    entity.signatoryList.clear()
+    entity.signatoryList.addAll(
+      signatoryList.map { it.toEntity(entity) },
+    )
+
+    return entity
+  }
+
+  private fun ProgrammeIntervention.toEntity(parom: ParomEntity): ProgrammeInterventionEntity = ProgrammeInterventionEntity(
+    parom = parom,
+    nameOfProgramme = nameOfProgramme,
+    dateCompleted = dateCompleted,
+    postProgrammeReport = postProgrammeReport,
+  )
+
+  private fun Signatory.toEntity(parom: ParomEntity): SignatoryEntity = SignatoryEntity(
+    parom = parom,
+    forename = forename,
+    surname = surname,
+    username = username,
+    emailAddress = emailAddress,
+    region = region,
+    telephoneNumber = telephoneNumber,
+    signatoryLevel = signatoryLevel?.name,
+    signed = signed,
+    signatureDate = signatureDate,
   )
 
   private fun ParomEntity.toModel(): Parom = Parom(
+    id = id,
     crn = crn,
+    terminated = terminated,
+    terminatedUnterminatedDate = terminatedUnterminatedDate,
+    basicDetailsSaved = basicDetailsSaved,
+    mentalHealthSaved = mentalHealthSaved,
+    prisonerContactSaved = prisonerContactSaved,
+    attitudesSaved = attitudesSaved,
+    victimsSaved = victimsSaved,
+    opdAndProgrammesSaved = opdAndProgrammesSaved,
+    mappaAndPlansSaved = mappaAndPlansSaved,
+    professionalOpinionsSaved = professionalOpinionsSaved,
+    ippdppSaved = ippdppSaved,
+    memberCaseAssessmentSaved = memberCaseAssessmentSaved,
+    conclusionSaved = conclusionSaved,
+    signOffSaved = signOffSaved,
     titleAndFullName = titleAndFullName,
-    dateOfForm = dateOfForm,
-    sheetSentBy = sheetSentBy,
+    reportDate = reportDate,
+    nomisNumber = nomisNumber,
+    prisonNumber = prisonNumber,
+    paroleEligibilityDate = paroleEligibilityDate,
+    communityOffenderManager = communityOffenderManager,
+    dateAppointed = dateAppointed,
+    completingTheForm = completingTheForm,
+    position = position,
+    mentalHealthConcerns = mentalHealthConcerns,
+    mentalCapacityConcerns = mentalCapacityConcerns,
+    opdPathway = opdPathway,
+    knowledgeOfPrisoner = knowledgeOfPrisoner,
+    prisonersFamily = prisonersFamily,
+    prisonerAgencies = prisonerAgencies,
+    attitudeToIndexOffences = attitudeToIndexOffences,
+    attitudeToPreviousOffences = attitudeToPreviousOffences,
+    victimContactScheme = victimContactScheme,
+    liaisonOfficerContactDate = liaisonOfficerContactDate,
+    victimPersonalStatement = victimPersonalStatement,
+    custodialBehaviour = custodialBehaviour,
+    programmesInterventions = programmesInterventions,
+    impactOfInterventions = impactOfInterventions,
+    mappaCategory = mappaCategory,
+    mappaLevel = mappaLevel,
+    resettlementPlan = resettlementPlan,
+    supervisionPlan = supervisionPlan,
+    proposedLicenseConditions = proposedLicenseConditions,
+    riskOfAbsconding = riskOfAbsconding,
+    ippTerminationCase = ippTerminationCase,
+    ippRecommendation = ippRecommendation,
+    reportAuthorsProfessionalOpinion = reportAuthorsProfessionalOpinion,
+    professionalOpinion = professionalOpinion,
+    confirmViewedReport = confirmViewedReport,
+    testConsiderationOpenConditions = testConsiderationOpenConditions,
+    licenceTerminationCase = licenceTerminationCase,
+    assessmentOralConsiderations = assessmentOralConsiderations,
+    previousConvictions = previousConvictions,
+    cpsDocuments = cpsDocuments,
+    sentencersComments = sentencersComments,
+    paroleCaseRecords = paroleCaseRecords,
+    paroleDossier = paroleDossier,
+    paroleCustodyReport = paroleCustodyReport,
+    other = other,
+    reportAssessmentsDirections = reportAssessmentsDirections,
+    limitationsToSourcesProvided = limitationsToSourcesProvided,
+    limitationsDetails = limitationsDetails,
+    qualityOfInformation = qualityOfInformation,
+    oasysManagementPlan = oasysManagementPlan,
+    paroleBoardReport = paroleBoardReport,
+    psRegion = psRegion,
+    pdu = pdu,
+    emailAddress = emailAddress,
+    contactTelephoneNumber = contactTelephoneNumber,
+    programmeInterventionList = programmeInterventionList.map { it.toModel() },
+    signatoryList = signatoryList.map { it.toModel() },
+  )
+
+  private fun ProgrammeInterventionEntity.toModel(): ProgrammeIntervention = ProgrammeIntervention(
+    id = id,
+    nameOfProgramme = nameOfProgramme,
+    dateCompleted = dateCompleted,
+    postProgrammeReport = postProgrammeReport,
+  )
+
+  private fun SignatoryEntity.toModel(): Signatory = Signatory(
+    id = id,
+    forename = forename,
+    surname = surname,
+    username = username,
+    emailAddress = emailAddress,
+    region = region,
+    telephoneNumber = telephoneNumber,
+    signatoryLevel = signatoryLevel?.let { SignatoryLevel.valueOf(it) },
+    signed = signed,
+    signatureDate = signatureDate,
   )
 }
