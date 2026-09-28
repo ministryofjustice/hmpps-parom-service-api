@@ -79,8 +79,8 @@ CREATE TABLE public.parom
     oasys_management_plan                boolean,
     parole_board_report                  boolean,
 
-    p_s_region                           varchar(100),
-    p_d_u                                varchar(100),
+    ps_region                            varchar(100),
+    pdu                                  varchar(100),
     email_address                        varchar(250),
     contact_telephone_number             varchar(35),
 

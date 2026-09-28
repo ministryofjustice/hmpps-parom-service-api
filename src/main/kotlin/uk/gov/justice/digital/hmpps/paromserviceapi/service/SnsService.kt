@@ -1,0 +1,61 @@
+package uk.gov.justice.digital.hmpps.paromserviceapi.service
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.messaging.MessagingException
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Service
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import software.amazon.awssdk.services.sns.model.PublishRequest
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.DomainEventsMessage
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.Identifiers
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.PersonReference
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.MissingQueueException
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+
+@Service
+class SnsService(
+  val hmppsQueueService: HmppsQueueService,
+  val objectMapper: ObjectMapper,
+  @Value("\${hmpps.sqs.topics.hmppsparompublishtopic.arn}") val outboundTopicArn: String,
+) {
+  companion object {
+    const val EVENT_TYPE_CREATED = "probation-case.parom.created"
+    const val EVENT_TYPE_DELETED = "probation-case.parom.deleted"
+  }
+
+  fun sendDeleteDomainEvent(crn: String, id: UUID) {
+    val outboundTopic = hmppsQueueService.findByTopicId("hmppsparompublishtopic")
+      ?: throw MissingQueueException("HmppsTopic hmppsparompublishtopic not found")
+    val userName: String? = SecurityContextHolder.getContext().authentication?.name
+    val messageObject = DomainEventsMessage(
+      description = "A PAROM record has been deleted",
+      version = 1,
+      occurredAt = ZonedDateTime.now(ZoneId.of("Europe/London")),
+      eventType = EVENT_TYPE_DELETED,
+      personReference = PersonReference(listOf(Identifiers(type = "crn", value = crn))),
+      detailUrl = null,
+      additionalInformation = mapOf(
+        "id" to id,
+        "username" to userName!!,
+      ),
+
+    )
+    val publishResponse = outboundTopic.snsClient.publish(
+      PublishRequest.builder().topicArn(outboundTopicArn).message(objectMapper.writeValueAsString(messageObject))
+        .messageAttributes(
+          mapOf(
+            "eventType" to MessageAttributeValue.builder().dataType("String")
+              .stringValue(EVENT_TYPE_DELETED).build(),
+          ),
+        ).build(),
+    )
+
+    publishResponse.get(5, TimeUnit.SECONDS).messageId()
+      ?: throw MessagingException("Unable to publish deletion message")
+  }
+}

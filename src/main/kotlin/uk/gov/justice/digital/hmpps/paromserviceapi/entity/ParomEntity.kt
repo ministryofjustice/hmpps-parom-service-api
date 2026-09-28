@@ -23,7 +23,7 @@ data class ParomEntity(
   @Id
   val id: UUID = UUID.randomUUID(),
   var crn: String,
-  var terminated: Boolean? = null,
+  var terminated: Boolean = false,
   var terminatedUnterminatedDate: ZonedDateTime? = null,
 
   var basicDetailsSaved: Boolean? = null,

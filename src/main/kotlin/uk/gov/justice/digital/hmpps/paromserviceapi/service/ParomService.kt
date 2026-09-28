@@ -1,19 +1,55 @@
 package uk.gov.justice.digital.hmpps.paromserviceapi.service
 
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.paromserviceapi.entity.ParomEntity
 import uk.gov.justice.digital.hmpps.paromserviceapi.entity.ProgrammeInterventionEntity
 import uk.gov.justice.digital.hmpps.paromserviceapi.entity.SignatoryEntity
+import uk.gov.justice.digital.hmpps.paromserviceapi.exception.NotFoundException
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.CreateResponse
+import uk.gov.justice.digital.hmpps.paromserviceapi.model.InitialiseParom
 import uk.gov.justice.digital.hmpps.paromserviceapi.model.Parom
 import uk.gov.justice.digital.hmpps.paromserviceapi.model.ProgrammeIntervention
 import uk.gov.justice.digital.hmpps.paromserviceapi.model.Signatory
 import uk.gov.justice.digital.hmpps.paromserviceapi.model.SignatoryLevel
 import uk.gov.justice.digital.hmpps.paromserviceapi.repository.ParomRepository
+import java.util.UUID
 
 @Service
 class ParomService(
   private val paromRepository: ParomRepository,
+  @Value("\${frontend.url}") val frontendUrl: String,
 ) {
+
+  fun getParomById(id: UUID): Parom = findParomById(id).toModel()
+
+  @Transactional
+  fun initialiseParom(initialiseParom: InitialiseParom) = paromRepository.save(
+    ParomEntity(crn = initialiseParom.crn),
+  ).id.let {
+    CreateResponse(it, "$frontendUrl/basic-details/$it")
+  }
+
+  @Transactional
+  fun updateParom(id: UUID, parom: Parom): Parom {
+    val paromEntity = findParomById(id)
+    return paromRepository.save(parom.toEntity(paromEntity)).toModel()
+  }
+
+  @Transactional
+  fun deleteParom(id: UUID): String {
+    if (!paromRepository.existsById(id)) {
+      throw NotFoundException("ParomEntity", "id", id)
+    }
+    val crn = findParomById(id).crn
+    paromRepository.deleteById(id)
+    return crn
+  }
+
+  private fun findParomById(id: UUID): ParomEntity = paromRepository.findByIdOrNull(id) ?: throw NotFoundException("ParomEntity", "id", id)
+
   private fun Parom.toEntity(existingEntity: ParomEntity? = null): ParomEntity {
     val entity = existingEntity?.copy(
       crn = crn,

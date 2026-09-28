@@ -9,7 +9,7 @@ data class Parom(
   val id: UUID? = null,
   @field:Pattern(regexp = "^[A-Z][0-9]{6}")
   var crn: String,
-  var terminated: Boolean? = null,
+  var terminated: Boolean = false,
   var terminatedUnterminatedDate: ZonedDateTime? = null,
 
   var basicDetailsSaved: Boolean? = null,
