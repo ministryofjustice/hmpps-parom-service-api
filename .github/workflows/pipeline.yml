@@ -73,7 +73,7 @@ jobs:
             build/test-results
             build/reports/tests
       - name: Upload the built jar
-#       if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: build-results
@@ -103,7 +103,7 @@ jobs:
           - 5432:5432
   build:
     name: Build docker image from hmpps-github-actions
-#    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
@@ -119,16 +119,6 @@ jobs:
       push: ${{ inputs.push || inputs.push == null }}
       docker_multiplatform: false
       download_build_artifacts: true
-#  build:
-#    name: Build docker image from hmpps-github-actions
-#    if: github.ref == 'refs/heads/main'
-#    uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@197163ad54840e622e8608c63b2aa6760f59ecf5 # v2.22.6
-#    with:
-#      docker_registry: 'ghcr.io'
-#      registry_org: 'ministryofjustice'
-#      additional_docker_tag: ${{ inputs.additional_docker_tag }}
-#      push: ${{ inputs.push || true }}
-#      docker_multiplatform: false
   deploy_dev:
     name: Deploy to the development environment
     needs:
